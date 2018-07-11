@@ -1,0 +1,29 @@
+# A script for accomplishing what [this](https://stackoverflow.com/a/11868440)
+# answer proposed: copying a thing in git, while keeping the copy tied to the
+# original thing in git history. 
+
+OLD_THING=$1
+NEW_THING=$2
+ORIGINAL_BRANCH=$(git symbolic-ref --short HEAD)
+
+# Move old-thing to new-thing in temp-branch. 
+git checkout -b temp-branch
+git mv $OLD_THING $NEW_THING
+git commit -m "Copying $OLD_THING to $NEW_THING. (Moving old-thing to new-thing, temp-branch.)"
+
+# Move old-thing to temp-thing in original-branch. 
+git checkout $ORIGINAL_BRANCH
+git mv $OLD_THING temp-copy-of-old-thing
+git commit -m "Copying $OLD_THING to $NEW_THING. (Moving old-thing to temp-thing, original-branch.)"
+
+# Merge temp-branch into original-branch, keeping new-thing and temp-thing.
+git merge temp-branch
+git add $NEW_THING
+git add temp-copy-of-old-thing
+git rm -rf $OLD_THING
+git commit -m "Copying $OLD_THING to $NEW_THING. (Merging temp-branch to original-branch, keeping new-thing and temp-thing.)"
+
+# Move temp-thing to old-thing, and delete temp-branch. 
+git mv temp-copy-of-old-thing $OLD_THING
+git commit -m "Copying $OLD_THING to $NEW_THING. (Moving temp-thing to old-thing.)"
+git branch -d temp-branch

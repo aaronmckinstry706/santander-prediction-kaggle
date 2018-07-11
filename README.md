@@ -69,3 +69,4 @@ the old experiment script and `<exp2>` is the new (similar, but soon-to-be-diffe
 
 Ta-da! Now both the new and the old files have linked histories, which is what I wanted!
 
+To make this much easier, there is a script I have provided, called `git-cp`, which performs this (caveat: one of the commands only works for git versions 1.8+, though there is a different command which works for previous versions). It's awesome. 
