@@ -1,6 +1,7 @@
-# script-project-template
+# [Santander Value Prediction Competition on Kaggle](https://www.kaggle.com/c/santander-value-prediction-challenge#description)
 
-A general project structure for working with several different (but related) Python scripts. 
+This repository contains all of my scripts which I use to explore the dataset, make predictions, and do anything else related to the project. 
+
 
 ## Work Flow
 
@@ -45,28 +46,9 @@ the subset of values that you allow.
 
 ## Git Usage
 
-This project was intended to track experiments as scripts that could potentially be deliverables. As such, I have a 
-specific use case in `git` that I would like to note. Feel free to ignore this if this isn't your use-case. 
+The `master` branch will be for complete, deliverable scripts only. Any development work is being done in a Jupyter Notebook, and being committed to the `scratch` branch in the meantime so that we can save all of our precious work without fear of losing anything. Then, when we're ready to create a script, we move the script from the Jupyter Notebook and format it as a proper script in this project. 
 
-When writing experiments in scripts (testing an optimization idea, or mathematical technique, etc.), I have a 
-tendency to produce a cascade of related experiments, each based off the last (as, naturally, one idea leads to 
-another, which leads to another, and so on); as a result, each corresponding script is based off the previous one. In
- `git` history, I want to track this flow. For example...
+When refactoring some Notebook code for use as a reproducible script, we first create and checkout a branch called `dev-<script-name>`. If you can't think of a script name immediately, just make it `dev` and then rename the branch later. Once the script is finished, merge it into `master`. 
 
-> I create an experiment script, run, and finalize the experiment. Now I have a new and related idea. Ah! I could
- use the old script and modify it! Hmmm, but then I would have to keep track of which commit had the old experiment 
- vs the new experiment. This is too much work for several experiments, and I want each file/directory to correspond to
-  a single experiment. How do I do this?
+Under *no* circumstances should you merge `scratch` into anywhere else. Other branches can be merged into `scratch`, but never the opposite. 
 
-It would be perfect if there was a `git cp` command--but, alas, this is 
-not the case. The only way that I have found to do this is via the following series of commands, where `<exp1>` is 
-the old experiment script and `<exp2>` is the new (similar, but soon-to-be-different) experiment script:
-
-1. `git branch <exp2>`
-2. `git mv <exp1> <exp2>` (still on non-`exp2` branch)
-3. `git merge <exp2>`
-4. In merge conflict, make sure to keep old `<exp1>` file, and commit. 
-
-Ta-da! Now both the new and the old files have linked histories, which is what I wanted!
-
-To make this much easier, there is a script I have provided, called `git-cp`, which performs this (caveat: one of the commands only works for git versions 1.8+, though there is a different command which works for previous versions). It's awesome. 
