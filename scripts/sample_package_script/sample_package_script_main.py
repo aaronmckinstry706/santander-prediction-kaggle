@@ -13,7 +13,3 @@ def add_args(arg_parser: argparse.ArgumentParser):
     LOGGER.debug('Adding arguments for sample_package_script.')
     arg_parser.description = 'This is a sample script; it is a package.'
     arg_parser.add_argument('--sample-arg', default='sample-value', type=str, help='This is a sample argument.')
-
-
-def test_package_script():
-    LOGGER.debug('Running sample unit test in sample_package_script.')

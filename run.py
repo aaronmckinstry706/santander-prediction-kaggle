@@ -21,7 +21,7 @@ def add_args(arg_parser):
 
 def main(raw_args):
     logging.basicConfig(format='%(asctime)s %(levelname)s [%(module)s.%(funcName)s:%(lineno)d] %(message)s',
-                        stream=sys.stderr, level=logging.DEBUG)
+                        stream=sys.stderr, level=logging.WARN)
 
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('-v', action='count', default=0,
