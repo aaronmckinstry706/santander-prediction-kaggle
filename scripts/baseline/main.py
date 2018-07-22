@@ -10,6 +10,9 @@ import sklearn.linear_model as linear_model
 import sklearn.metrics as metrics
 
 
+from scripts.baseline import xval
+
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -17,6 +20,19 @@ def run(clargs):
     LOGGER.info('Loading training data.')
     training_data = pandas.read_csv(str(clargs.training_data))
     training_data['log_target'] = numpy.log(training_data['target'] + 1.0)
+
+    def validate(training_data: pandas.DataFrame, validation_data: pandas.DataFrame) -> float:
+        linear_regression = linear_model.LinearRegression()
+        linear_regression.fit(training_data.drop(columns=['log_target', 'target', 'ID']), training_data['log_target'])
+        training_log_predictions = linear_regression.predict(training_data.drop(columns=['log_target', 'target', 'ID']))
+        LOGGER.info('Training score: {}'.format(
+            math.sqrt(metrics.mean_squared_error(training_data['log_target'], training_log_predictions))))
+        validation_log_targets = linear_regression.predict(validation_data.drop(columns=['log_target', 'target', 'ID']))
+        return math.sqrt(metrics.mean_squared_error(validation_data['log_target'], validation_log_targets))
+
+    LOGGER.info('Cross validating.')
+    xval_loss, xval_losses = xval.cross_validate(training_data, validate, num_folds=10)
+    LOGGER.info('Cross-Validation RMSLE: {} = avg({})'.format(xval_loss, xval_losses))
 
     LOGGER.info('Fitting model.')
     linear_regression = linear_model.LinearRegression()
