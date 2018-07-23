@@ -136,4 +136,8 @@ Some brief ideas before I sleep:
 
 * in general, the previous two points show that we can get away with modifying only the `train(...)` function and the `linear_regression.predict(...)` lines. 
 
+## July 23, 2018
 
+Posted a question to SoftwareEngineering StackExchange, and got some good feedback. Looks like a separate git repository is the closest I'll get. Someone suggested doing a journal as a series of commit messages in a log, but I don't like that, because I don't get to edit it. I'll respond to their questions/comments/answers tonight, but for now I just need to work on this project. 
+
+Finished the rough-draft training code. Now I need to put it all together in a function. However, now's a good stopping point. Need to find a library, cuz Baltimore. 
