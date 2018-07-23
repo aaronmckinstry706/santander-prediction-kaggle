@@ -17,43 +17,51 @@ LOGGER = logging.getLogger(__name__)
 
 
 def run(clargs):
+    def logify(x: pandas.Series):
+        return numpy.log(x + 1.0)
+
+    def delogify(x: pandas.Series):
+        return numpy.exp(x) - 1.0
+
     LOGGER.info('Loading training data.')
     training_data = pandas.read_csv(str(clargs.training_data))
-    training_data['log_target'] = numpy.log(training_data['target'] + 1.0)
+    training_data.set_index('ID', inplace=True)
+    training_data['target'] = logify(training_data['target'])
+
+    def train(training_data: pandas.DataFrame) -> linear_model.LinearRegression:
+        linear_regression = linear_model.LinearRegression()
+        linear_regression.fit(training_data.drop(columns='target'), training_data['target'])
+        return linear_regression
+
+    def rmse(targets: pandas.Series, predictions: pandas.Series) -> float:
+        return math.sqrt(metrics.mean_squared_error(targets, predictions))
 
     def validate(training_data: pandas.DataFrame, validation_data: pandas.DataFrame) -> float:
-        linear_regression = linear_model.LinearRegression()
-        linear_regression.fit(training_data.drop(columns=['log_target', 'target', 'ID']), training_data['log_target'])
-        training_log_predictions = linear_regression.predict(training_data.drop(columns=['log_target', 'target', 'ID']))
-        LOGGER.info('Training score: {}'.format(
-            math.sqrt(metrics.mean_squared_error(training_data['log_target'], training_log_predictions))))
-        validation_log_targets = linear_regression.predict(validation_data.drop(columns=['log_target', 'target', 'ID']))
-        return math.sqrt(metrics.mean_squared_error(validation_data['log_target'], validation_log_targets))
+        linear_regression = train(training_data)
+        return rmse(validation_data['target'], linear_regression.predict(validation_data.drop(columns='target')))
 
     LOGGER.info('Cross validating.')
     xval_loss, xval_losses = xval.cross_validate(training_data, validate, num_folds=10)
     LOGGER.info('Cross-Validation RMSLE: {} = avg({})'.format(xval_loss, xval_losses))
 
     LOGGER.info('Fitting model.')
-    linear_regression = linear_model.LinearRegression()
-    linear_regression.fit(training_data.drop(columns=['log_target', 'target', 'ID']), training_data['log_target'])
-    training_data['log_prediction'] = linear_regression.predict(
-        training_data.drop(columns=['log_target', 'target', 'ID']))
-    rmsle = math.sqrt(metrics.mean_squared_error(training_data['log_target'], training_data['log_prediction']))
+    linear_regression = train(training_data)
+    log_prediction = linear_regression.predict(training_data.drop(columns='target'))
+    rmsle = rmse(training_data['target'], log_prediction)
     LOGGER.info('Training RMSLE: {0}'.format(rmsle))
 
     LOGGER.info('Loading testing data.')
     testing_data = pandas.read_csv(str(clargs.testing_data))
+    testing_data.set_index('ID', inplace=True)
 
     LOGGER.info('Making predictions.')
-    log_targets = linear_regression.predict(testing_data.drop(columns=['ID']))
-    testing_data['log_target'] = log_targets
-    testing_data['log_target'] = testing_data['log_target'].clip(lower=0.0, upper=math.log(4600000000000.0 + 1.0))
-    testing_data['target'] = numpy.exp(testing_data['log_target']) - 1.0
+    output = pandas.DataFrame(index=testing_data.index)
+    output['target'] = linear_regression.predict(testing_data)
+    output['target'] = delogify(output['target'].clip(lower=0.0, upper=math.log(4600000000000.0 + 1.0)))
 
     clargs.output_path.parent.mkdir(parents=True, exist_ok=True)
     LOGGER.info('Outputting predictions to {}'.format(clargs.output_path))
-    testing_data[['ID', 'target']].to_csv(str(clargs.output_path), index=False)
+    output.to_csv(str(clargs.output_path))
 
 
 def add_args(arg_parser: argparse.ArgumentParser):
