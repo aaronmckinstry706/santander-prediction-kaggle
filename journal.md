@@ -102,5 +102,38 @@ Writing `cross_validate`: the core is finished. I'm handling the only edge-case 
 
 ## July 21, 2018
 
-Last night, I was still writing the test function for iteration over the folds. Let's finish that. Wrote some unit tests for each function, debugged them. Done!
+Last night, I was still writing the test function for iteration over the folds. Let's finish that. Wrote some unit tests for each function, debugged them. Done! Now I need to put these in `dev-baseline`. Added `xval` module with new functions. Now I need to use these to do cross-validation in the `run(...)` function. This means I need a function which (a) trains the model on training data, and (b) evaluates the model's performance on the validation set. Since I want to train the model on all the data and make predictions for the test set as well, I need to put the training, prediction, and scoring code in separate functions, which can then be composed as needed. Prediction code is in `linear_model.LinearRegression.predict(...)`, so we don't need that. However, we do need a loss function given the log predictions. 
+
+Jk, skipped all that because of time constraints and being on family vacation. We need to figure out a better method for organizing the training, prediction, and scoring functions. The problem is that the code I've written requires the data and labels to be in the same row. Preprocessing means that I'm taking the log of all values in the matrix, and of the target predictions. For data exploration, it would be awesome to keep track of the original data; however, for actual training/prediction, the original data does not need to be saved; therefore, we should simply preprocess and modify the data without thought of preservation. With that in mind, we can organize the code as follows:
+
+* `train(training_data: pandas.DataFrame) -> linear_model.LinearRegression`, which trains the model; it assumes that there is an `ID` field, a `target` field, and the rest of the fields are for prediction;
+
+* `score(labels: pandas.Series, predictions: pandas.Series) -> float`, which scores a model's predictions; and
+
+* `predict(unlabeled_data: pandas.DataFrame) -> pandas.Series`, which produces the model output on the given data; it assumes that there is an `ID` field, and the rest of the fields are model inputs. 
+
+The key is the assumptions on the structure of the data. We can do whatever we want to it beforehand, but this structure means we can generalize the code. Jk, this can't be generalized well. 
+
+Bah! I don't think the code can be generalized any more than it already has been for cross-validation. We can make better assumptions about the structure of the data that gets passed into the `cross_validate` function, but that's pretty much it. Let's make the following rules:
+
+1. The target being predicted is *always* in the column `target`, regardless of whether it has been modified or not. Note that if the data is unlabeled, then it is not present. 
+
+2. The DataFrame's index is named `ID`.
+
+3. Any fields besides `target` and `ID` should be treated as inputs to a model. 
+
+## July 22, 2018
+
+We did it! It's amazing. I'd *like* to do some preprocessing--but I don't think that's a good idea quite yet. First, I want to use PyTorch to properly optimize on the true error function. Then we can use the GPU, which should drastically reduce our time to perform training and, thus, cross-validation. 
+
+First, we've got some debugging to do. Awesome! Fixed that line, finished the code, verified prediction is same as the one I submitted before. Boom!
+
+Some brief ideas before I sleep:
+
+* PyTorch version of loss function is only needed during training of the PyTorch model;
+
+* after training the PyTorch model, one needs to encapsulate the prediction function (the `nn.Module` callable) inside a function which (a) takes a dataframe as input, (b) transforms it into a `numpy` array, (c) transforms that to a `Tensor`, (d) calls the model to get a prediction `Tensor`, (e) transforms it back to `numpy` array, and (f) returns a `Series` with the proper indexing (same indexing as original training data);
+
+* in general, the previous two points show that we can get away with modifying only the `train(...)` function and the `linear_regression.predict(...)` lines. 
+
 
