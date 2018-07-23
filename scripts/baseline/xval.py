@@ -4,6 +4,7 @@ from typing import Callable, List, Tuple
 
 import numpy
 import pandas
+from tqdm import tqdm
 
 
 LOGGER = logging.getLogger(__name__)
@@ -48,8 +49,10 @@ def cross_validate(training_data: pandas.DataFrame,
                    validation_score: Callable[[pandas.DataFrame, pandas.DataFrame], float],
                    num_folds: int) -> Tuple[float, List[float]]:
     scores = []
-    for training_subset, validation_subset in folds(training_data, num_folds):
-        scores.append(validation_score(training_subset, validation_subset))
+    with tqdm(total=num_folds) as t:
+        for training_subset, validation_subset in folds(training_data, num_folds):
+            scores.append(validation_score(training_subset, validation_subset))
+            t.update(1)
     return sum(scores) / len(scores), scores
 
 

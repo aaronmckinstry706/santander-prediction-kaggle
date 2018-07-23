@@ -1,0 +1,10 @@
+*
+!*/
+!*.py
+!journal.md
+!scratch.ipynb
+!pytest.ini
+!git-cp
+!run
+!README.md
+!.gitignore
