@@ -1,0 +1,10 @@
+JOURNAL_BRANCH=journal
+JOURNAL_FILE=journal.md
+WORKING_JOURNAL_FILE=working-journal.md
+ORIGINAL_BRANCH=$(git symbolic-ref --short HEAD)
+
+git checkout $JOURNAL_BRANCH
+cp $WORKING_JOURNAL_FILE $JOURNAL_FILE
+git add $JOURNAL_FILE
+git commit -m "Journal update."
+git checkout $ORIGINAL_BRANCH
