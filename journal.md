@@ -142,4 +142,4 @@ Posted a question to SoftwareEngineering StackExchange, and got some good feedba
 
 Finished the rough-draft training code. Now I need to put it all together in a function. However, now's a good stopping point. Need to find a library, cuz Baltimore. 
 
-Testing a workflow relating to journal entries.
+Testing a workflow relating to journal entries. Success! *Figured* *that* *shit* *out*. Now I just need to put those commands in scripts, and we're good to go. I'm testing the scripts. 
