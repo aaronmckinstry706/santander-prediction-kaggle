@@ -49,10 +49,8 @@ def cross_validate(training_data: pandas.DataFrame,
                    validation_score: Callable[[pandas.DataFrame, pandas.DataFrame], float],
                    num_folds: int) -> Tuple[float, List[float]]:
     scores = []
-    with tqdm(total=num_folds) as t:
-        for training_subset, validation_subset in folds(training_data, num_folds):
-            scores.append(validation_score(training_subset, validation_subset))
-            t.update(1)
+    for training_subset, validation_subset in folds(training_data, num_folds):
+        scores.append(validation_score(training_subset, validation_subset))
     return sum(scores) / len(scores), scores
 
 

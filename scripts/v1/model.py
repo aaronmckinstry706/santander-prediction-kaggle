@@ -37,7 +37,7 @@ def test_LinearNN():
     assert output.index.equals(input_data.index)
 
 
-def train(training_data: pandas.DataFrame, lr=0.0001) -> LinearNN:
+def train(training_data: pandas.DataFrame, steps=10, lr=0.0001) -> LinearNN:
     data_tensor = torch.from_numpy(training_data.drop(columns='target').values).float()
     data_tensor = data_tensor.to(COMPUTE_DEVICE)
     label_tensor = torch.from_numpy(training_data[['target']].values).float()
@@ -57,7 +57,7 @@ def train(training_data: pandas.DataFrame, lr=0.0001) -> LinearNN:
         loss.backward()
         return loss
 
-    for i in range(10):
+    for i in range(steps):
         optimizer.step(evaluate_loss_closure)
 
     return linear_nn

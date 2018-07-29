@@ -9,6 +9,7 @@ import pandas
 import sklearn.metrics as metrics
 import torch
 import torch.cuda as cuda
+import tqdm
 
 
 from scripts.v1 import model
@@ -35,16 +36,31 @@ def run(clargs):
     def rmse(targets: pandas.Series, predictions: pandas.Series) -> float:
         return math.sqrt(metrics.mean_squared_error(targets, predictions))
 
-    def validate(training_data: pandas.DataFrame, validation_data: pandas.DataFrame) -> float:
-        linear_nn = model.train(training_data)
-        return rmse(validation_data['target'], linear_nn.predict(validation_data.drop(columns='target')))
+    LOGGER.info('Choosing hyperparameters.')
+    avg_xval_losses = []
+    parameter_dicts = []
+    with tqdm.tqdm(total=20, position=0, desc='hyperparam sets') as lr_power_bar:
+        for lr_power in range(0, 20):
+            lr = 0.5 ** lr_power
+            parameter_dict = {'lr': lr, 'steps': 20}
 
-    LOGGER.info('Cross validating.')
-    xval_loss, xval_losses = xval.cross_validate(training_data, validate, num_folds=10)
-    LOGGER.info('Cross-Validation RMSLE: {} = avg({})'.format(xval_loss, xval_losses))
+            def validate(training_data: pandas.DataFrame, validation_data: pandas.DataFrame) -> float:
+                linear_nn = model.train(training_data, **parameter_dict)
+                return rmse(validation_data['target'],
+                            linear_nn.predict(validation_data.drop(columns='target')))
+
+            avg_xval_loss, _ = xval.cross_validate(training_data, validate, num_folds=10)
+
+            parameter_dicts.append(parameter_dict)
+            avg_xval_losses.append(avg_xval_loss)
+
+            lr_power_bar.update(1)
+
+    best_params = parameter_dicts[avg_xval_losses.index(min(avg_xval_losses))]
+    LOGGER.info('Choosing {}.'.format(best_params))
 
     LOGGER.info('Fitting model.')
-    linear_nn = model.train(training_data)
+    linear_nn = model.train(training_data, **best_params)
     log_prediction = linear_nn.predict(training_data.drop(columns='target'))
     rmsle = rmse(training_data['target'], log_prediction)
     LOGGER.info('Training RMSLE: {0}'.format(rmsle))
