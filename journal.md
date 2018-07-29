@@ -142,4 +142,10 @@ Posted a question to SoftwareEngineering StackExchange, and got some good feedba
 
 Finished the rough-draft training code. Now I need to put it all together in a function. However, now's a good stopping point. Need to find a library, cuz Baltimore. 
 
-Testing a workflow relating to journal entries. Success! *Figured* *that* *shit* *out*. Now I just need to put those commands in scripts, and we're good to go. I'm testing the scripts. 
+Testing a workflow relating to journal entries. Success! *Figured* *that* *shit* *out*. Now I just need to put those commands in scripts, and we're good to go. I'm testing the scripts. Put those commands into scripts. Success!
+
+## July 29, 2018
+
+Need to put training code into functions. Done! Took a bit longer than expected, but I did it. Next, I need to add code that tests different learning rates and chooses the best one. After that, if the optimal learning rate isn't performing well at all, I'll try using different preprocessing techniques (i.e., normalize with mirror-negatives, etc.). 
+
+First: test different learning rates. Done, but now I want to implement early stopping. That's the next step. I'm too overworked, though. Wait 'til next week. 
