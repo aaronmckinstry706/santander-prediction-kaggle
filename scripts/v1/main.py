@@ -2,6 +2,7 @@ import argparse
 import logging
 import math
 import pathlib
+from typing import Tuple
 
 
 import numpy
@@ -39,24 +40,27 @@ def run(clargs):
     LOGGER.info('Choosing hyperparameters.')
     avg_xval_losses = []
     parameter_dicts = []
-    with tqdm.tqdm(total=20, position=0, desc='hyperparam sets') as lr_power_bar:
-        for lr_power in range(0, 20):
-            lr = 0.5 ** lr_power
-            parameter_dict = {'lr': lr, 'steps': 20}
+    NUM_LEARNING_RATES = 7
+    MAX_STEPS = 100
+    with tqdm.tqdm(total=NUM_LEARNING_RATES, position=0, desc='hyperparam sets') as lr_power_bar:
+        for lr_power in range(0, NUM_LEARNING_RATES):
+            lr = 0.1 ** lr_power
+            parameter_dict = {'lr': lr, 'steps': MAX_STEPS}
 
-            def validate(training_data: pandas.DataFrame, validation_data: pandas.DataFrame) -> float:
-                linear_nn = model.train(training_data, **parameter_dict)
-                return rmse(validation_data['target'],
-                            linear_nn.predict(validation_data.drop(columns='target')))
+            def validate(training_data: pandas.DataFrame, validation_data: pandas.DataFrame) -> Tuple[float, int]:
+                linear_nn, count = model.train_early_stopping(training_data, validation_data, **parameter_dict)
+                return rmse(validation_data['target'], linear_nn.predict(validation_data.drop(columns='target'))), count
 
-            avg_xval_loss, _ = xval.cross_validate(training_data, validate, num_folds=10)
+            avg_xval_loss, avg_iteration = xval.cross_validate(training_data, validate, num_folds=10)
 
+            parameter_dict['steps'] = int(avg_iteration)
             parameter_dicts.append(parameter_dict)
             avg_xval_losses.append(avg_xval_loss)
 
             lr_power_bar.update(1)
 
-    best_params = parameter_dicts[avg_xval_losses.index(min(avg_xval_losses))]
+    min_index = avg_xval_losses.index(min(avg_xval_losses))
+    best_params = parameter_dicts[min_index]
     LOGGER.info('Choosing {}.'.format(best_params))
 
     LOGGER.info('Fitting model.')

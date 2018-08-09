@@ -46,23 +46,26 @@ def test_folds():
 
 
 def cross_validate(training_data: pandas.DataFrame,
-                   validation_score: Callable[[pandas.DataFrame, pandas.DataFrame], float],
-                   num_folds: int) -> Tuple[float, List[float]]:
+                   validation_score: Callable[[pandas.DataFrame, pandas.DataFrame], Tuple[float, int]],
+                   num_folds: int) -> Tuple[float, float]:
     scores = []
+    training_iterations = []  # The number of training iterations taken for each run.
     for training_subset, validation_subset in folds(training_data, num_folds):
-        scores.append(validation_score(training_subset, validation_subset))
-    return sum(scores) / len(scores), scores
+        score, training_iteration = validation_score(training_subset, validation_subset)
+        scores.append(score)
+        training_iterations.append(training_iteration)
+    return sum(scores) / len(scores), sum(training_iterations) / len(training_iterations)
 
 
 def test_cross_validate():
-    def next_int(x: pandas.DataFrame, y: pandas.DataFrame) -> float:
+    def next_int(x: pandas.DataFrame, y: pandas.DataFrame) -> Tuple[float, int]:
         next_int.x = next_int.x + 1
-        return next_int.x
+        return next_int.x, next_int.x + 1
 
     next_int.x = 0
 
     training_data = pandas.DataFrame(data=numpy.random.randn(4, 4), columns=['A', 'B', 'C', 'D'])
     num_folds = 3
-    mean_score, all_scores = cross_validate(training_data, next_int, num_folds)
-    assert tuple(all_scores) == (1, 2, 3), 'Scores should be (1, 2, 3), but are {}.'.format(all_scores)
+    mean_score, mean_iterations = cross_validate(training_data, next_int, num_folds)
+    assert mean_iterations == 3, 'Mean iterations should be 3, but is {}.'.format(mean_iterations)
     assert mean_score == 2, 'Mean score should be 2, but is {}.'.format(mean_score)
