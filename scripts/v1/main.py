@@ -90,7 +90,11 @@ def add_args(arg_parser: argparse.ArgumentParser):
                               '`exp(p_i) - 1` were taken before outputting the prediction file. To prevent inf/NaN '
                               'values, the prediction values `p_i` were clipped to values in the range [0, '
                               'log(4600000000000 + 1)] (the largest transaction ever made, according to a quick '
-                              'Google search, was 4.6 trillion dollars).')
+                              'Google search, was 4.6 trillion dollars). For preprocessing, the `log(x + 1)` transform '
+                              'was applied to all numeric values. Early stopping was used for regularization during '
+                              'cross-validation; cross-validation was used to determine the best learning rate ('
+                              'values 1, 0.1, ..., 10^-6 were tested), and the average early-stop-time was used to'
+                              'determine how long to train the model on the whole training set.')
 
     def nonexistent_file_path(s: str):
         try:
